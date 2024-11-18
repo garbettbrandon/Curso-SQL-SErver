@@ -270,3 +270,25 @@ SELECT DISTINCT customer_id, COUNT(product_key) AS total_productos_dist
 FROM customer
 GROUP BY customer_id
 HAVING COUNT(product_key) = (SELECT total_productos FROM t1);
+
+
+-- 1321. Restaurant Growth
+WITH fechas AS (
+    SELECT
+        DISTINCT c1.visited_on AS fecha
+    FROM 
+        customer c1
+    JOIN 
+        customer c2 
+        ON DATEADD(day, -6, c1.visited_on) = c2.visited_on
+)
+SELECT
+    f.fecha as visited_on, 
+    SUM(c.amount) as amount,
+    ROUND(CAST(SUM(c.amount) AS FLOAT) / COUNT(DISTINCT c.visited_on), 2) as average_amount
+FROM 
+    customer c
+JOIN 
+    fechas f
+    ON c.visited_on BETWEEN DATEADD(day, -6, f.fecha) AND f.fecha
+GROUP BY f.fecha
