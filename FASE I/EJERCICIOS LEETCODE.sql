@@ -1,33 +1,44 @@
 -- CONFIRMATION RATE
-WITH 	con AS 			(SELECT user_id, 
-								COUNT(action) as actions_comfirmed
-						FROM confirmations
-						WHERE action = 'confirmed'
-						GROUP BY 1),
-		tim AS			(SELECT user_id, 
-								COUNT(action) as actions_timeout
-						FROM confirmations
-						WHERE action = 'timeout'
-						GROUP BY 1)
-
-SELECT s.user_id, ROUND(con.actions_comfirmed/(con.actions_comfirmed + tim.actions_timeout), 2) as confirmation_rate
-FROM Signups s
-JOIN Confirmations c
-ON s.user_id = c.user_id
-JOIN con
-ON con.user_id = c.user_id
-JOIN tim 
-ON tim.user_id = con.user_id
-GROUP BY 1, 2;
-
+-- CONFIRMATION RATE
+WITH con AS (
+  SELECT 
+    user_id, 
+    COUNT(action) as actions_comfirmed 
+  FROM 
+    confirmations 
+  WHERE 
+    action = 'confirmed' 
+  GROUP BY 1
+), 
+tim AS (
+  SELECT 
+    user_id, 
+    COUNT(action) as actions_timeout 
+  FROM 
+    confirmations 
+  WHERE 
+    action = 'timeout' 
+  GROUP BY 1
+) 
+SELECT 
+  s.user_id, 
+  ROUND(con.actions_comfirmed /(con.actions_comfirmed + tim.actions_timeout), 2) as confirmation_rate 
+FROM 
+  Signups s 
+  JOIN Confirmations c ON s.user_id = c.user_id 
+  JOIN con ON con.user_id = c.user_id 
+  JOIN tim ON tim.user_id = con.user_id 
+GROUP BY   1, 2;
 
 -- SOLUCION
-select 	s.user_id, 
-		round(avg(if(c.action="confirmed",1,0)),2) as confirmation_rate
-from Signups as s 
-left join Confirmations as c 
-on s.user_id= c.user_id 
-group by user_id;
+select 
+  s.user_id, 
+  round(avg(if(c.action = "confirmed", 1, 0)), 2) as confirmation_rate 
+from 
+  Signups as s 
+  left join Confirmations as c on s.user_id = c.user_id 
+group by 
+  user_id;
 
 
 -- 1251. Average Selling Price
@@ -55,7 +66,7 @@ GROUP BY 1;
 
 -- 1633. Percentage of Users Attended a Contest
 SELECT 	contest_id, 
-		round(count(user_id)*100/(select count(user_id) from users) , 2) as percentage
+	round(count(user_id)*100/(select count(user_id) from users) , 2) as percentage
 FROM register
 group by 1
 order by 2 DESC,1;
@@ -65,8 +76,8 @@ order by 2 DESC,1;
 -- We define query quality as: The average of the ratio between query rating and its position.
 
 select 	query_name, 
-		round(avg(cast(rating as decimal) / position), 2) as quality,
-		round(sum(case when rating < 3 then 1 else 0 end) * 100 / count(*), 2) as poor_query_percentage
+	round(avg(cast(rating as decimal) / position), 2) as quality,
+	round(sum(case when rating < 3 then 1 else 0 end) * 100 / count(*), 2) as poor_query_percentage
 from Queries
 WHERE query_name is NOT NULL
 group by 1;
